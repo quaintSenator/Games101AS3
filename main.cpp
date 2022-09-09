@@ -108,6 +108,11 @@ struct light
     Eigen::Vector3f intensity;
 };
 
+Eigen::Vector3f mipmap_fragment_shader(const fragment_shader_payload &payload)
+{
+    Eigen::Vector3f return_color = {0, 0, 0};
+    
+}
 Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload &payload)
 {
     Eigen::Vector3f return_color = {0, 0, 0};
@@ -117,7 +122,8 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload &payload)
         return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
         std::cout << return_color.x() << return_color.y() << return_color.z() << std::endl;
     }
-    else std::cout <<"payload.texture==null!"<< std::endl;
+    else
+        std::cout << "payload.texture==null!" << std::endl;
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
     // texture_color *= 255;
