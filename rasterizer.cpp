@@ -309,7 +309,6 @@ void rst::rasterizer::rasterize_triangle(const Triangle &t, const std::array<Eig
         top = k.y() > top ? k.y() : top;
         b = k.y() < b ? k.y() : b;
     }
-
     for (int i = (int)l; i <= r; i++)
     {
         for (int j = (int)b; j <= top; j++)
@@ -333,13 +332,26 @@ void rst::rasterizer::rasterize_triangle(const Triangle &t, const std::array<Eig
                 float coord_x = my_interpolation(i, j, t.a(), t.b(), t.c(), t.tex_coords[0].x(), t.tex_coords[1].x(), t.tex_coords[2].x());
                 float coord_y = my_interpolation(i, j, t.a(), t.b(), t.c(), t.tex_coords[0].y(), t.tex_coords[1].y(), t.tex_coords[2].y());
                 Eigen::Vector2f coords_interpolation(coord_x, coord_y);
-
+                // mipmap1 add
+                mipmap_pixel_uv[i][j] = coords_interpolation;
+                // mipmap1 add
                 float shading_x = my_interpolation(i, j, t.a(), t.b(), t.c(), view_pos[0].x(), view_pos[1].x(), view_pos[2].x());
                 float shading_y = my_interpolation(i, j, t.a(), t.b(), t.c(), view_pos[0].y(), view_pos[1].y(), view_pos[2].y());
                 float shading_z = my_interpolation(i, j, t.a(), t.b(), t.c(), view_pos[0].z(), view_pos[1].z(), view_pos[2].z());
-                fragment_shader_payload playload(color_interpolation, nor_interpolation, coords_interpolation, &texture);
-                //fragment_shader_payload playload(color_interpolation, nor_interpolation, coords_interpolation, rst::rasterizer::texture ? &*texture : nullptr);
+                Eigen::Vector4f neighbour;
+                if (i == 0 || j == 0 || i >= 700 || j >= 700)
+                {
+                    neighbour = {0, 0, 0, 0}; // won't use anyway, just avoid outrange
+                }
+                else
+                {
+                    neighbour << mipmap_pixel_uv[i - 1][j].x(), mipmap_pixel_uv[i - 1][j].y(), mipmap_pixel_uv[i][j - 1].x(), mipmap_pixel_uv[i][j - 1].y();
+                }
+
+                fragment_shader_payload playload(color_interpolation, nor_interpolation, coords_interpolation, neighbour, &texture);
+                // fragment_shader_payload playload(color_interpolation, nor_interpolation, coords_interpolation, rst::rasterizer::texture ? &*texture : nullptr);
                 playload.view_pos = Eigen::Vector3f(shading_x, shading_y, shading_z);
+
                 auto pixel_color = fragment_shader(playload);
 
                 if (z_interpolation < depth_buf[get_index(i, j)])

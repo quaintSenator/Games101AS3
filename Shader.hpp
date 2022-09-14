@@ -7,7 +7,6 @@
 #include <eigen3/Eigen/Eigen>
 #include "Texture.hpp"
 
-
 struct fragment_shader_payload
 {
     fragment_shader_payload()
@@ -15,15 +14,15 @@ struct fragment_shader_payload
         texture = nullptr;
     }
 
-    fragment_shader_payload(const Eigen::Vector3f& col, const Eigen::Vector3f& nor,const Eigen::Vector2f& tc, Texture* tex) :
-         color(col), normal(nor), tex_coords(tc), texture(tex) {}
-
+    fragment_shader_payload(const Eigen::Vector3f &col, const Eigen::Vector3f &nor, const Eigen::Vector2f &tc, const Eigen::Vector4f &nei, Texture *tex) : 
+    color(col), normal(nor), tex_coords(tc), neighbour(nei), texture(tex) {}
 
     Eigen::Vector3f view_pos;
     Eigen::Vector3f color;
     Eigen::Vector3f normal;
     Eigen::Vector2f tex_coords;
-    Texture* texture;
+    Eigen::Vector4f neighbour;
+    Texture *texture;
 };
 
 struct vertex_shader_payload
@@ -31,4 +30,4 @@ struct vertex_shader_payload
     Eigen::Vector3f position;
 };
 
-#endif //RASTERIZER_SHADER_H
+#endif // RASTERIZER_SHADER_H

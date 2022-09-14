@@ -72,7 +72,8 @@ namespace rst
         void set_projection(const Eigen::Matrix4f &p);
 
         void set_texture(Texture tex) { texture = tex; }
-
+        Texture get_texture();
+        Texture set_mipmap();
         void set_vertex_shader(std::function<Eigen::Vector3f(vertex_shader_payload)> vert_shader);
         void set_fragment_shader(std::function<Eigen::Vector3f(fragment_shader_payload)> frag_shader);
 
@@ -84,6 +85,9 @@ namespace rst
         void draw(std::vector<Triangle *> &TriangleList);
 
         std::vector<Eigen::Vector3f> &frame_buffer() { return frame_buf; }
+        // mipmap1 add
+        Eigen::Vector2f mipmap_pixel_uv[700][700];
+        // mipmap1 add
 
     private:
         void draw_line(Eigen::Vector3f begin, Eigen::Vector3f end);
@@ -104,8 +108,9 @@ namespace rst
         std::map<int, std::vector<Eigen::Vector3f>> col_buf;
         std::map<int, std::vector<Eigen::Vector3f>> nor_buf;
 
-        //std::optional<Texture> texture;
+        // std::optional<Texture> texture;
         Texture texture;
+        Texture mipmap;
 
         std::function<Eigen::Vector3f(fragment_shader_payload)> fragment_shader;
         std::function<Eigen::Vector3f(vertex_shader_payload)> vertex_shader;

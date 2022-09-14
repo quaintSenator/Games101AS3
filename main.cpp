@@ -108,10 +108,61 @@ struct light
     Eigen::Vector3f intensity;
 };
 
+int countDminas = 0;
 Eigen::Vector3f mipmap_fragment_shader(const fragment_shader_payload &payload)
 {
+    Eigen::Vector3f col_arr[] = {
+        {0, 255, 255},   // green-blue
+        {72, 61, 139},   // Darkslateblue
+        {132, 112, 255}, // slight slate blue
+        {65, 105, 255},  // royal blue
+        {0, 191, 255},   // deep sky blue
+        {178, 238, 238}, // pale turquoise
+        {0, 206, 209},   // dark turquoise
+        {153, 51, 250},  // foreign purple
+        {180, 20, 150},  // interpolation 1
+        {230, 10, 50},   // interpolation 2
+        {255, 0, 0}      // red
+    };
     Eigen::Vector3f return_color = {0, 0, 0};
-    
+    float L1, L2, D, xd, yd;
+    Eigen::Vector4f nei = payload.neighbour;
+    xd = nei.x() - payload.tex_coords.x();
+    yd = nei.y() - payload.tex_coords.y();
+    xd *= 1024;
+    yd *= 1024;
+    L1 = xd * xd + yd * yd;
+
+    xd = nei.z() - payload.tex_coords.x();
+    yd = nei.w() - payload.tex_coords.y();
+    xd *= 1024;
+    yd *= 1024;
+    L2 = xd * xd + yd * yd;
+
+    D = L1 > L2 ? L1 : L2;
+    D = log10(D) / log10(2);
+    D /= 2;
+
+    if (D > 9)
+    {
+        countDminas++;
+        std::cout << "countD+ = " << countDminas << std::endl;
+        std::cout << "D = " << D << std::endl;
+        std::cout << "nei.x() " << nei.x() << std::endl;
+        std::cout << "nei.y() " << nei.y() << std::endl;
+        std::cout << "nei.z() " << nei.z() << std::endl;
+        std::cout << "nei.w() " << nei.w() << std::endl;
+
+        std::cout << "payload.tex_coords.x() " << payload.tex_coords.x() << std::endl;
+        std::cout << "payload.tex_coords.y() " << payload.tex_coords.y() << std::endl;
+        std::cout << "L1 " << L1 << std::endl;
+        std::cout << "L2 " << L2 << std::endl;
+    }
+
+    int d = (int)D;
+    Eigen::Vector3f r_color;
+    r_color << col_arr[d] * (D - d) + col_arr[d + 1] * (d + 1 - D);
+    return r_color;
 }
 Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload &payload)
 {
@@ -120,7 +171,6 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload &payload)
     {
         // TODO: Get the texture value at the texture coordinates of the current fragment
         return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
-        std::cout << return_color.x() << return_color.y() << return_color.z() << std::endl;
     }
     else
         std::cout << "payload.texture==null!" << std::endl;
@@ -385,6 +435,11 @@ int main(int argc, const char **argv)
         {
             std::cout << "Rasterizing using the bump shader\n";
             active_shader = displacement_fragment_shader;
+        }
+        else if (argc == 3 && std::string(argv[2]) == "mipmap")
+        {
+            std::cout << "Rasterizing using the mipmap shader\n";
+            active_shader = mipmap_fragment_shader;
         }
     }
 
